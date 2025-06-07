@@ -19,10 +19,6 @@ import entityClasses.QuestionSet;
 import entityClasses.Answer;
 import entityClasses.AnswerSet;
 import javafx.scene.text.*;
-import entityClasses.Answer; // for keeping track of the number of unread answers
-import entityClasses.AnswerSet; // for keeping track of the number of unread answers
-import javafx.scene.text.*; // for keeping track of the number of unread answers
-import utilityClasses.UnreadAnswerTracker; // for keeping track of the number of unread answers
 
 /*******
  * <p> Title: GUIStudentQuestionPage Class. </p>
@@ -69,8 +65,6 @@ public class GUIStudentQuestionPage {
 	QuestionSet questionSet = new QuestionSet();
 	QuestionSet questionSubSet;
 	Question quest;
-	
-    private UnreadAnswerTracker unreadTracker = new UnreadAnswerTracker(); // for keeping track of the number of unread answers
 
 	private Button button_Logout = new Button("Logout");
 	private Button button_Quit = new Button("Quit");
@@ -360,8 +354,7 @@ public class GUIStudentQuestionPage {
 			//Check the status of the question, if it is unresolved then we can 
 			//create the text fields and display it
         	quest = questionSubSet.getQuestion(i);
-            int unread = unreadTracker.getUnreadCount(quest); //updated to include unread answer tracking
-            text = new Text(quest.getText() + " (" + unread + " new)"); //updated to include unread answer tracking
+			text = new Text(quest.getText());
     		text.setLayoutX(100);
     		text.setLayoutY(23 + (i * 30));
     		//set up the button to view the replies
@@ -383,9 +376,6 @@ public class GUIStudentQuestionPage {
 		 * as well as respond to the question*/
 		
 		questionPane.getChildren().clear();
-
-        // Mark answers as read now that the student is viewing them
-        unreadTracker.markAsRead(q);
 		
 		// Initialize the dialog box for inputting answers/responses
 		TextInputDialog dialogPostReply = new TextInputDialog();
