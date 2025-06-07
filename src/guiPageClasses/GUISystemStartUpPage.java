@@ -16,6 +16,9 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import databaseClasses.Database;
 import entityClasses.User;
+import javafx.scene.control.TextInputDialog; // for one-time password functionality
+import java.util.Optional; // for one-time password functionality
+import databaseClasses.OneTimePasswordManager; // for one-time password functionality
 
 /*******
  * <p> Title: GUIStartupPage Class. </p>
@@ -191,6 +194,15 @@ public class GUISystemStartUpPage {
 	 *
 	 */
 	public static GUIUserUpdatePage theUserUpdatePage = null;
+	
+	
+	/**********
+	 * <p> Public Static Singleton: theUserUpdatePage </p>
+	 * 
+	 * <p> Description: This object is the template for users to update their attributes. </p>
+	 *
+	 */
+	public static GUIStudentQuestionPage theStudentQuestionPage = null;
 
 	/**********************************************************************************************
 
@@ -443,8 +455,23 @@ public class GUISystemStartUpPage {
 	}
 
 	private void doSetupAdmin() {
-		
+		String userValidResp = UserNameRecognizer.checkForValidUserName(adminUsername);
 		// Make sure the two passwords are the same
+		if (userValidResp != "") {
+			// The username is not valid, error window will appear and detail what is wrong
+			alertUsernamePasswordError.setContentText(String.format("%s. Try again!",userValidResp));
+    		alertUsernamePasswordError.showAndWait();
+    		return;
+		}
+		// Make sure the password is valid
+		String validPassResp = PasswordEvaluator.evaluatePassword(adminPassword1);
+		
+    	if (validPassResp != "") {
+    		// If password is not valid, window will popup and detail what is wrong
+    		alertUsernamePasswordError.setContentText(String.format("%s. Try again!",validPassResp));
+    		alertUsernamePasswordError.showAndWait();
+    		return;
+    	}
 		if (adminPassword1.compareTo(adminPassword2) == 0) {
         	// Create the passwords and proceed to the user home page
             try {
@@ -476,12 +503,29 @@ public class GUISystemStartUpPage {
 		String password = text_Password.getText();
     	boolean loginResult = false;
     	
+    	// Checks for a valid username
+    	String validNameResp = UserNameRecognizer.checkForValidUserName(username);
+    	if (validNameResp != "") {
+    		// If username is not valid, window will popup and detail what is wrong
+    		alertUsernamePasswordError.setContentText(String.format("%s. Try again!",validNameResp));
+    		alertUsernamePasswordError.showAndWait();
+    		return;
+    	}
+    	// Checks for a valid password
+    	String validPassResp = PasswordEvaluator.evaluatePassword(password);
+    	if (validPassResp != "") {
+    		// If password is not valid, window will popup and detail what is wrong
+    		alertUsernamePasswordError.setContentText(String.format("%s. Try again!",validPassResp));
+    		alertUsernamePasswordError.showAndWait();
+    		return;
+    	}
 		// Fetch the user
     	if (database.getUserAccountDetails(username) == false) {
     		alertUsernamePasswordError.setContentText("Incorrect username/password. Try again!");
     		alertUsernamePasswordError.showAndWait();
     		return;
     	}
+    	
     	String actualPassword = database.getCurrentPassword();
     	user = new User(username, password, database.getCurrentAdminRole(), 
     			database.getCurrentStudentRole(), database.getCurrentReviewerRole(), 
@@ -495,11 +539,44 @@ public class GUISystemStartUpPage {
     			"; Instructor: " + database.getCurrentInstructorRole() + 
     			"; Staff: " + database.getCurrentStaffRole());
  */   	
-    	if (password.compareTo(actualPassword) != 0) {
-    		alertUsernamePasswordError.setContentText("Incorrect username/password. Try again!");
-    		alertUsernamePasswordError.showAndWait();
-    		return;
-    	}
+    	// for one-time password functionality
+        if (password.compareTo(actualPassword) != 0) {
+            OneTimePasswordManager otp = new OneTimePasswordManager();
+            String otpValue = otp.getOneTimePassword(username);
+            if (otpValue != null && otpValue.equals(password)) {
+                    otp.clearOneTimePassword(username);
+                    TextInputDialog np1 = new TextInputDialog();
+                    np1.setTitle("New Password");
+                    np1.setHeaderText("Enter a new password for " + username);
+                    Optional<String> r1 = np1.showAndWait();
+                    if (!r1.isPresent()) return;
+                    TextInputDialog np2 = new TextInputDialog();
+                    np2.setTitle("Confirm Password");
+                    np2.setHeaderText("Re-enter the new password");
+                    Optional<String> r2 = np2.showAndWait();
+                    if (!r2.isPresent() || !r1.get().equals(r2.get())) {
+                            Alert a = new Alert(AlertType.INFORMATION);
+                            a.setTitle("Password Mismatch");
+                            a.setHeaderText(null);
+                            a.setContentText("The passwords did not match.");
+                            a.showAndWait();
+                            return;
+                    }
+                    database.updatePassword(username, r1.get());
+                    Alert a = new Alert(AlertType.INFORMATION);
+                    a.setTitle("Password Updated");
+                    a.setHeaderText(null);
+                    a.setContentText("Password updated. Please login again.");
+                    a.showAndWait();
+                    text_Username.setText("");
+                    text_Password.setText("");
+                    return;
+            } else {
+                    alertUsernamePasswordError.setContentText("Incorrect username/password. Try again!");
+                    alertUsernamePasswordError.showAndWait();
+                    return;
+            }
+    }
     	
 		int numberOfRoles = database.getNumberOfRoles(user);		
 		if (numberOfRoles == 1) {
@@ -634,7 +711,25 @@ public class GUISystemStartUpPage {
 		} else {
 			user = new User("", "", false, false, false, false, false);
 		}
-
+		
+		// Make sure the Username is valid
+		String userValidResp = UserNameRecognizer.checkForValidUserName(username);
+		
+		if (userValidResp != "") {
+			// The username is not valid, error window will appear and detail what is wrong
+			alertUsernamePasswordError.setContentText(String.format("%s. Try again!",userValidResp));
+    		alertUsernamePasswordError.showAndWait();
+    		return;
+		}
+		// Make sure the password is valid
+		String validPassResp = PasswordEvaluator.evaluatePassword(password);
+		
+    	if (validPassResp != "") {
+    		// If password is not valid, window will popup and detail what is wrong
+    		alertUsernamePasswordError.setContentText(String.format("%s. Try again!",validPassResp));
+    		alertUsernamePasswordError.showAndWait();
+    		return;
+    	}
 		// Make sure the two passwords are the same		
 		if (text_Password1.getText().compareTo(text_Password2.getText()) == 0) {
 			System.out.println("The User Passwords match");

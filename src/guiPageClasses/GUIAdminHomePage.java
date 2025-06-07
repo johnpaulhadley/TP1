@@ -3,7 +3,7 @@ package guiPageClasses;
 import java.util.ArrayList;
 import java.util.List;
 
-//import java.util.Optional;
+import java.util.Optional; // for the one-time password feature
 
 import applicationMainMethodClasses.FCMainClass;
 import javafx.collections.FXCollections;
@@ -16,7 +16,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
-//import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.TextInputDialog; // for the one-time password feature
 //import javafx.scene.control.TextField;
 //import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
@@ -24,6 +24,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import databaseClasses.Database;
+import databaseClasses.OneTimePasswordManager; // for the one-time password feature
 import entityClasses.User;
 
 /*******
@@ -329,13 +330,38 @@ public class GUIAdminHomePage {
 		alertNotImplemented.showAndWait();
 	}
 	
-	private void setOnetimePassword () {
-		System.out.println("\n*** WARNING ***: One-Time Password Not Yet Implemented");
-		alertNotImplemented.setTitle("*** WARNING ***");
-		alertNotImplemented.setHeaderText("One-Time Password Issue");
-		alertNotImplemented.setContentText("One-Time Password Not Yet Implemented");
-		alertNotImplemented.showAndWait();
-	}
+	// updated to implement the one-time password feature
+    private void setOnetimePassword () {
+        TextInputDialog dialogUser = new TextInputDialog();
+        dialogUser.setTitle("Set One-Time Password");
+        dialogUser.setHeaderText("Enter the username for the temporary password");
+        Optional<String> userResult = dialogUser.showAndWait();
+        if (!userResult.isPresent()) return;
+        String username = userResult.get();
+        if (!theDatabase.doesUserExist(username)) {
+                alertNotImplemented.setTitle("One-Time Password");
+                alertNotImplemented.setHeaderText("User Not Found");
+                alertNotImplemented.setContentText("The specified user does not exist.");
+                alertNotImplemented.showAndWait();
+                return;
+        }
+
+        TextInputDialog dialogPwd = new TextInputDialog();
+        dialogPwd.setTitle("Set One-Time Password");
+        dialogPwd.setHeaderText("Enter the one-time password for " + username);
+        Optional<String> pwdResult = dialogPwd.showAndWait();
+        if (!pwdResult.isPresent()) return;
+
+        OneTimePasswordManager otp = new OneTimePasswordManager();
+        otp.setOneTimePassword(username, pwdResult.get());
+        otp.close();
+
+        Alert info = new Alert(AlertType.INFORMATION);
+        info.setTitle("One-Time Password Set");
+        info.setHeaderText(null);
+        info.setContentText("Temporary password set for user " + username);
+        info.showAndWait();
+}
 	
 	private void deleteUser() {
 		System.out.println("\n*** WARNING ***: Delete User Not Yet Implemented");

@@ -2,8 +2,10 @@ package guiPageClasses;
 
 import applicationMainMethodClasses.FCMainClass;
 import javafx.geometry.Pos;
+//import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+//import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
@@ -41,7 +43,8 @@ public class GUIStudentHomePage {
 	private Line line_Separator1 = new Line(20, 95, FCMainClass.WINDOW_WIDTH-20, 95);
 	
 	private Line line_Separator4 = new Line(20, 525, FCMainClass.WINDOW_WIDTH-20,525);
-	
+	//Clay Edit
+	private Button button_AskQuestion = new Button("Question Dashboard");
 	private Button button_Logout = new Button("Logout");
 	private Button button_Quit = new Button("Quit");
 
@@ -49,7 +52,7 @@ public class GUIStudentHomePage {
 	private Pane theRootPane;
 	private Database theDatabase;
 	private User theUser;
-
+	//private Alert alertNotImplemented = new Alert(AlertType.INFORMATION);
 	/**********************************************************************************************
 
 	Constructors
@@ -98,6 +101,9 @@ public class GUIStudentHomePage {
 		
 		setupButtonUI(button_UpdateThisUser, "Dialog", 18, 170, Pos.CENTER, 610, 45);
 		button_UpdateThisUser.setOnAction((event) -> {performUpdate(); });
+		//Clay Edits
+		setupButtonUI(button_AskQuestion, "Dialog", 18, 190, Pos.CENTER, 20, 110);
+	    button_AskQuestion.setOnAction((event) -> {goToQuestions(); });
 		
         setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
         button_Logout.setOnAction((event) -> {performLogout(); });
@@ -121,6 +127,7 @@ public class GUIStudentHomePage {
 	    theRootPane.getChildren().addAll(
 			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
 	        line_Separator4, 
+	        button_AskQuestion,//Clay Edit
 	        button_Logout,
 	        button_Quit
 	    );
@@ -177,6 +184,14 @@ public class GUIStudentHomePage {
 	
 	private void performLogout() {
 		GUISystemStartUpPage.theSystemStartupPage.setup();
+	}
+	//Clay edits
+	private void goToQuestions() {
+		if (GUISystemStartUpPage.theStudentQuestionPage == null)
+			GUISystemStartUpPage.theStudentQuestionPage = 
+				new GUIStudentQuestionPage(primaryStage, theRootPane, theDatabase, theUser);
+		else
+			GUISystemStartUpPage.theStudentQuestionPage.setup();
 	}
 	
 	private void performQuit() {
